@@ -25,8 +25,9 @@ public class Server extends Thread {
     /**
      * Creates a new instance of Server
      */
-//    public Enemy[] enemy = new Enemy[20];
+
     static ArrayList<ClientInfo> clients;
+//    static ArrayList<ClientInfo>[] rooms = new ArrayList<ClientInfo>[100];
     private ServerSocket serverSocket;
     private int serverPort = 11111;
     Random generator = new Random();
@@ -36,8 +37,6 @@ public class Server extends Thread {
     private Protocol protocol;
     private boolean running = true;
 
-    DatagramSocket UDPSocket;
-    InetAddress address;
 
     public Server() throws SocketException {
         clients = new ArrayList<ClientInfo>();
@@ -88,8 +87,9 @@ public class Server extends Thread {
 
             if (sentence.startsWith("Hello")) {
                 System.out.println("sending Back");
-                    int pos = sentence.indexOf(',');
-                    String name = sentence.substring(pos + 1, sentence.length());
+                    int pos1 = sentence.indexOf(',');
+
+                String name = sentence.substring(pos1 + 1, sentence.length());
 
                     try {
                         writer = new DataOutputStream(clientSocket.getOutputStream());
@@ -104,9 +104,10 @@ public class Server extends Thread {
                     e.printStackTrace();
                 }
             } else if (sentence.startsWith("ok")) {
-                int pos = sentence.indexOf(',');
-                String name = sentence.substring(pos + 1, sentence.length());
-
+                int pos1 = sentence.indexOf(',');
+                    int pos2 = sentence.indexOf('.');
+                    String name = sentence.substring(pos1 + 1, pos2);
+                    int value = Integer.parseInt(sentence.substring(pos2+1,sentence.length()));
                 try {
                     writer = new DataOutputStream(clientSocket.getOutputStream());
                 } catch (IOException ex) {
@@ -114,7 +115,7 @@ public class Server extends Thread {
                 }
 //                  sendToClient(writer,name+"How arre you?");
                 try {
-                    BroadCastMessage("OK "+name);
+                    BroadCastMessage("OK,"+name+"."+value);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
