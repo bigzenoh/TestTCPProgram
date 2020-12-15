@@ -37,6 +37,9 @@ public class Server extends Thread {
     private Protocol protocol;
     private boolean running = true;
 
+    //thông tin .....52673547512
+    int NumOfTask = 3, CountingTask=0;
+    int NumOfResource = 1, CountingResource=0; //biến couting để đếm số task hiện tại đã vote
 
     public Server() throws SocketException {
         clients = new ArrayList<ClientInfo>();
@@ -84,9 +87,12 @@ public class Server extends Thread {
                 continue;
             }
 
-
+            System.out.println(sentence);
             if (sentence.startsWith("Hello")) {
                 System.out.println("sending Back");
+                for(int i=0;i<clients.size();i++){
+                    System.out.print(clients.get(i).name+" - ");
+                }
                     int pos1 = sentence.indexOf(',');
 
                 String name = sentence.substring(pos1 + 1, sentence.length());
@@ -96,13 +102,28 @@ public class Server extends Thread {
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-                    clients.add(new ClientInfo(writer,name));
 //                  sendToClient(writer,name+"How arre you?");
                 try {
-                    BroadCastMessage("Hello"+name);
+
+                    for(int i=0;i<clients.size();i++){
+                        if(clients.get(i)!=null){
+                            sendToClient(writer,"new,"+clients.get(i).name);
+                            System.out.println("add exist name");
+                        }
+
+                    }
+                    BroadCastMessage("new,"+name);
+                    System.out.println("broadcast new name");
+                    sendToClient(writer,"AddYourself");
+                    System.out.println("require add YOurself");
+                    clients.add(new ClientInfo(writer,name));
+//                    if(clients.size()==NumOfResource) {
+//                        BroadCastMessage("NextTask");
+//                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
             } else if (sentence.startsWith("ok")) {
                 int pos1 = sentence.indexOf(',');
                     int pos2 = sentence.indexOf('.');
@@ -119,6 +140,15 @@ public class Server extends Thread {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+//                CountingResource+=1;
+//                if(CountingResource==clients.size()){
+//                    try {
+//                        BroadCastMessage("NextTask");
+//                        CountingResource=0;
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
             }
             yield();
         }
@@ -138,7 +168,7 @@ public class Server extends Thread {
     }
 
     public static void BroadCastMessage(String mess) throws IOException {
-        if(clients.size()>1){
+        if(clients.size()>0){
             for (int i = 0; i < clients.size(); i++) {
                 if (clients.get(i) != null) {
                     clients.get(i).getWriterStream().writeUTF(mess);
