@@ -38,8 +38,8 @@ public class Server extends Thread {
     private boolean running = true;
 
     //thông tin .....52673547512
-    int NumOfTask = 3, CountingTask=0;
-    int NumOfResource = 1, CountingResource=0; //biến couting để đếm số task hiện tại đã vote
+    int numberOfTask = 1, CountingTask=0;
+    int numberOfResource = 1, CountingResource=0; //biến couting để đếm số task hiện tại đã vote
 
     public Server() throws SocketException {
         clients = new ArrayList<ClientInfo>();
@@ -86,69 +86,97 @@ public class Server extends Thread {
                 ex.printStackTrace();
                 continue;
             }
-
             System.out.println(sentence);
+            // gói tin lời chào khi có client yêu cầu kết nối
             if (sentence.startsWith("Hello")) {
-                System.out.println("sending Back");
-                for(int i=0;i<clients.size();i++){
-                    System.out.print(clients.get(i).name+" - ");
-                }
+                // nếu chưa đủ client thì thêm vào
+                if(clients.size()<numberOfResource){
+                    System.out.println("sending Back");
+                    for(int i=0;i<clients.size();i++){
+                        System.out.print(clients.get(i).name+" - ");
+                    }
                     int pos1 = sentence.indexOf(',');
-
-                String name = sentence.substring(pos1 + 1, sentence.length());
-
+                    int pos2 = sentence.indexOf(".");
+                    String name = sentence.substring(pos1 + 1, pos2);
+                    // nếu là client đầu tiên, lấy dữ liệu về task và resource để thiết lập
+                    if(clients.size()==0){
+                        int pos3 = sentence.indexOf("|");
+                        numberOfResource = Integer.parseInt(sentence.substring(pos2+1,pos3));
+                        numberOfTask = Integer.parseInt(sentence.substring(pos3+1,sentence.length()));
+                        System.out.println("client đầu - "+numberOfResource+" - "+numberOfTask);
+                    }
                     try {
                         writer = new DataOutputStream(clientSocket.getOutputStream());
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
 //                  sendToClient(writer,name+"How arre you?");
-                try {
+                    try {
+                        //yêu cầu client vừa tham gia add các client đã tham gia trước vào mảng dữ liệu
+                        for(int i=0;i<clients.size();i++){
+                            if(clients.get(i)!=null){
+                                sendToClient(writer,"new,"+clients.get(i).name);
+                                System.out.println("add exist name");
+                            }
 
-                    for(int i=0;i<clients.size();i++){
-                        if(clients.get(i)!=null){
-                            sendToClient(writer,"new,"+clients.get(i).name);
-                            System.out.println("add exist name");
                         }
-
+                        BroadCastMessage("new,"+name);
+                        System.out.println("broadcast new name");
+                        // yêu cầu client add chính nó vào mảng dữ liệu
+                        sendToClient(writer,"AddYourself");
+                        System.out.println("require add YOurself");
+                        // thêm client vừa rồi vào mảng chứa các client đã kết nối tới server
+                        clients.add(new ClientInfo(writer,name));
+                    if(clients.size()==numberOfResource) {
+                        BroadCastMessage("Start");
                     }
-                    BroadCastMessage("new,"+name);
-                    System.out.println("broadcast new name");
-                    sendToClient(writer,"AddYourself");
-                    System.out.println("require add YOurself");
-                    clients.add(new ClientInfo(writer,name));
-//                    if(clients.size()==NumOfResource) {
-//                        BroadCastMessage("NextTask");
-//                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    sendToClient(writer,"Denied");  // đủ client rồi thì gửi về từ chối
                 }
-
             } else if (sentence.startsWith("ok")) {
                 int pos1 = sentence.indexOf(',');
                     int pos2 = sentence.indexOf('.');
-                    String name = sentence.substring(pos1 + 1, pos2);
-                    int value = Integer.parseInt(sentence.substring(pos2+1,sentence.length()));
+                    String id = sentence.substring(pos1 + 1, pos2);
+                    String value = sentence.substring(pos2+1,sentence.length());
                 try {
                     writer = new DataOutputStream(clientSocket.getOutputStream());
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-//                  sendToClient(writer,name+"How arre you?");
                 try {
-                    BroadCastMessage("OK,"+name+"."+value);
+                    BroadCastMessage("ok,"+id+"."+value);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                CountingResource+=1;
-//                if(CountingResource==clients.size()){
-//                    try {
-//                        BroadCastMessage("NextTask");
-//                        CountingResource=0;
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
+                CountingResource++;
+                if(CountingResource==clients.size()){
+                    CountingResource=0;
+                    CountingTask++;
+                    if(CountingTask<numberOfTask){
+                        try {
+                            BroadCastMessage("NextTask");
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        try {
+                            BroadCastMessage("End");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } else if (sentence.startsWith("NextTask")) {
+                try {
+                    BroadCastMessage("NextTask");
+//                    BroadCastMessage("SetTask");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             yield();
         }

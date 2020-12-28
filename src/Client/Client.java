@@ -12,10 +12,10 @@ public class Client extends Thread {
     static Socket clientSocket;
     static DataOutputStream writer;
     static DataInputStream reader;
-    ClientGUI clientGUI;
+    ClientGUI1 clientGUI1;
 
-    public Client(ClientGUI clientGUI, String name) {
-        this.clientGUI = clientGUI;
+    public Client(ClientGUI1 clientGUI1, String name) {
+        this.clientGUI1 = clientGUI1;
     }
 
     public static Socket getClientSocket() {

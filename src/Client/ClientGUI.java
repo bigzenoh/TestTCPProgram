@@ -17,7 +17,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     public ClientGUI() {
         this.TaskList = new DefaultListModel<String>();
         setResizable(false);
-        setSize(1300, 920);
+        setSize(1300, 800);
         setLocation(300, 50);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
@@ -37,6 +37,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         nextTask = createJButton("NEXT TASK");
         nextTask.setBounds(300, 0, 150, 150);
         nextTask.setBackground(Color.cyan);
+//        nextTask.setEnabled(false);
         contentPane.add(nextTask);
 
         //t?o khung hi?n th? task ?ang estimate
@@ -51,6 +52,8 @@ public class ClientGUI extends JFrame implements ActionListener {
         TaskPane.setLocation(800,50);
         TaskPane.setSize(400,500);
         contentPane.add(TaskPane);
+
+
         // t?o 10 cái nút
         Vbtn1 = createJButton("1");
         Vbtn1.setBounds(200, 650, 100, 70);
@@ -109,7 +112,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     JList<String> EstimatedList;
     DefaultListModel<String> TaskList;
     //các bi?n dùng cho tính toán
-    int TaskEstimating=1;
+    int TaskEstimating=1, NumOfTask=7;
     ArrayList<ArrayList<String>> MainData = new ArrayList<ArrayList<String>>();
     String YourName = "Datt";
 
@@ -137,6 +140,22 @@ public class ClientGUI extends JFrame implements ActionListener {
         label.setText("Estimating task: " + i);
     }
 
+    public String castArrayToString(ArrayList<ArrayList<String>> mainData) {
+        String res="";
+        for (int i=0;i<MainData.get(0).size();i++){
+            String temp = mainData.get(0).get(i);
+            for(int j=1;j<mainData.size();j++){
+                temp = temp+","+mainData.get(j).get(i);
+            }
+            temp+="\n";
+            res+=temp;
+        }
+
+        System.out.println(res);
+        return res;
+    }
+
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == Vbtn1) {
@@ -147,31 +166,31 @@ public class ClientGUI extends JFrame implements ActionListener {
             client.sendToServer("ok,Dat.2");
         } else if (e.getSource() == Vbtn3) {
             System.out.println("3");
-            client.sendToServer("ok,Dat.3");
+            client.sendToServer("ok,"+YourName+".3");
         } else if (e.getSource() == Vbtn4) {
             System.out.println("5");
-            client.sendToServer("ok,Dat.5");
+            client.sendToServer("ok,"+YourName+".5");
         } else if (e.getSource() == Vbtn5) {
             System.out.println("8");
-            client.sendToServer("ok,Dat.8");
+            client.sendToServer("ok,"+YourName+".8");
         } else if (e.getSource() == Vbtn6) {
             System.out.println("13");
-            client.sendToServer("ok,Dat.13");
+            client.sendToServer("ok,"+YourName+".13");
         } else if (e.getSource() == Vbtn7) {
             System.out.println("21");
-            client.sendToServer("ok,Dat.21");
+            client.sendToServer("ok,"+YourName+".21");
         } else if (e.getSource() == Vbtn8) {
             System.out.println("34");
-            client.sendToServer("ok,Dat.34");
+            client.sendToServer("ok,"+YourName+".34");
         } else if (e.getSource() == Vbtn9) {
             System.out.println("55");
-            client.sendToServer("ok,Dat.55");
+            client.sendToServer("ok,"+YourName+".55");
         } else if (e.getSource() == Vbtn10) {
             System.out.println("89");
-            client.sendToServer("ok,Dat.89");
+            client.sendToServer("ok,"+YourName+".89");
         } else if (e.getSource() == start) {
             //t?o m?t client ??n server
-            client = new Client(this, YourName);
+//            client = new Client(this,YourName);
             client.start();
             client.sendToServer("Hello,"+YourName);
             System.out.println("sent Hello with "+YourName);
@@ -182,7 +201,23 @@ public class ClientGUI extends JFrame implements ActionListener {
             start.setEnabled(false);
         } else if (e.getSource() == join) {
         } else if (e.getSource() == nextTask) {
-            client.sendToServer("NextTask");
+//            client.sendToServer("NextTask");
+//            if(TaskEstimating == NumOfTask) {
+//                client.sendToServer("End");
+//            }
+            MainData.add(new ArrayList<>());
+            MainData.add(new ArrayList<>());
+            MainData.add(new ArrayList<>());
+            MainData.get(0).add("a");
+            MainData.get(0).add("b");
+            MainData.get(0).add("c");
+            MainData.get(1).add("d");
+            MainData.get(1).add("e");
+            MainData.get(1).add("f");
+            MainData.get(2).add("g");
+            MainData.get(2).add("h");
+            MainData.get(2).add("i");
+            String s = castArrayToString(MainData);
         }
     }
 
@@ -212,6 +247,7 @@ public class ClientGUI extends JFrame implements ActionListener {
                     System.out.println("from Server: " + sentence);
                     //chạy lệnh điều khiển khi nhận được gói tin
                     if (sentence.startsWith("OK")) {
+                        //nhan duoc thong tin vote cua nguoi khac
                         int pos2 = sentence.indexOf(" .");
                         String value = sentence.substring(pos2+1,sentence.length());
                         clientGUI.TaskEstimating+=1;
@@ -220,20 +256,25 @@ public class ClientGUI extends JFrame implements ActionListener {
                         clientGUI.EstimatedList.setModel(clientGUI.TaskList);
                         clientGUI.TaskPane.repaint();
                     } else if (sentence.startsWith("new")) {
+                        //add them thanh vien moi vao mang du lieu chinh
                         int pos = sentence.indexOf(",");
                         String name = sentence.substring(pos+1,sentence.length());
 
                         clientGUI.MainData.add(new ArrayList<String>());
                         clientGUI.MainData.get(clientGUI.MainData.size()-1).add(name);
                     } else if (sentence.startsWith("AddYourself")) {
+                        //add chinh minh vao mang du lieu chinh
                         clientGUI.MainData.add(new ArrayList<String>());
                         clientGUI.MainData.get(clientGUI.MainData.size()-1).add(clientGUI.YourName);
                         for(int i=0;i<clientGUI.MainData.size();i++) {
                             System.out.println(clientGUI.MainData.get(i).get(0));
                         }
                     } else if (sentence.startsWith("NextTask")) {
-
-                    } else if (sentence.startsWith("SetTask")){
+                        //neu la thang dau tien ket noi thi cho phep bam next task (~chu phong)
+                        if (clientGUI.MainData.indexOf(clientGUI.YourName)==0){
+                            clientGUI.nextTask.setEnabled(true);
+                        }
+                    } else if (sentence.startsWith("End")){
 
                     }
                 } catch (IOException ex) {
