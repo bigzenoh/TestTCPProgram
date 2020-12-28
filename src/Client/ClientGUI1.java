@@ -4,6 +4,7 @@ package Client;/*
  * and open the template in the editor.
  */
 
+import javax.swing.table.DefaultTableModel;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -309,10 +310,10 @@ public class ClientGUI1 extends javax.swing.JFrame {
         resultTable.setBorder(javax.swing.BorderFactory.createCompoundBorder());
         resultTable.setModel(new javax.swing.table.DefaultTableModel(
                 new Object [][] {
-                        {null, null, null, null},
-                        {null, null, null, null},
-                        {null, null, null, null},
-                        {null, null, null, null}
+//                        {null, null, null, null},
+//                        {null, null, null, null},
+//                        {null, null, null, null},
+//                        {null, null, null, null}
                 },
                 new String [] {
                         "Task", "Your Estimate", "Everyone's Estimate", "Compare"
@@ -394,7 +395,6 @@ public class ClientGUI1 extends javax.swing.JFrame {
         // TODO add your handling code here:
         submitBtn.setEnabled(false);
         client.sendToServer("ok,"+YourID+"."+scoreLabel.getText());
-
     }
 
     private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -561,7 +561,23 @@ public class ClientGUI1 extends javax.swing.JFrame {
     int numberOfResource, numberOfTask, taskEstimating=0;
 
     // Custom function
+    public Object[] resultRow(){
+        int everyOneEstm = 0;
+        String compare;
+        for (int i=0;i<MainData.size();i++){
+            everyOneEstm+=Integer.parseInt(MainData.get(i).get(taskEstimating));
+        }
+        everyOneEstm/=MainData.size();
 
+        if(Integer.parseInt(MainData.get(YourID).get(taskEstimating))-everyOneEstm<10){
+            compare="GOOD";
+        } else {
+            compare="HMM";
+        }
+
+        Object[] obj = new Object[]{taskEstimating,MainData.get(YourID).get(taskEstimating),everyOneEstm,compare};
+        return obj;
+    }
     ///////////////////////////////////////////////RECEVING CLASS
     public static class ReceivingThread extends Thread {
 
@@ -612,9 +628,16 @@ public class ClientGUI1 extends javax.swing.JFrame {
                         }
                         clientGUI1.YourID = clientGUI1.MainData.size()-1;
                     } else if (sentence.startsWith("NextTask")) {
+                        //test
+                        DefaultTableModel model = (DefaultTableModel) clientGUI1.resultTable.getModel();
+                        model.addRow(clientGUI1.resultRow());
+
                         clientGUI1.taskEstimating++;
                         clientGUI1.estimatingTaskLabel.setText("Estimating task: "+clientGUI1.taskEstimating);
                         clientGUI1.submitBtn.setEnabled(true);
+
+
+
                     } else if (sentence.startsWith("Start")){
                         clientGUI1.taskEstimating++;
                         clientGUI1.estimatingTaskLabel.setText("Estimating task: "+clientGUI1.taskEstimating);
@@ -626,6 +649,8 @@ public class ClientGUI1 extends javax.swing.JFrame {
                             }
                             System.out.println(" ");
                         }
+                        DefaultTableModel model = (DefaultTableModel) clientGUI1.resultTable.getModel();
+                        model.addRow(clientGUI1.resultRow());
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
