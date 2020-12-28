@@ -152,7 +152,7 @@ public class Server extends Thread {
                     e.printStackTrace();
                 }
                 CountingResource++;
-                if(CountingResource==clients.size()){
+                if(CountingResource==numberOfResource){
                     CountingResource=0;
                     CountingTask++;
                     if(CountingTask<numberOfTask){

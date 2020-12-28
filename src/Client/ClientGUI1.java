@@ -39,6 +39,7 @@ public class ClientGUI1 extends javax.swing.JFrame {
         numberOfResourceInput = new javax.swing.JTextField();
         numberOfTaskInput = new javax.swing.JTextField();
         joinBtn = new javax.swing.JButton();
+        startBtn = new javax.swing.JButton();
         mainPanel = new javax.swing.JPanel();
         btn1 = new javax.swing.JButton();
         btn2 = new javax.swing.JButton();
@@ -65,30 +66,25 @@ public class ClientGUI1 extends javax.swing.JFrame {
         startPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
         nameInput.setText("Your Name");
-        nameInput.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                nameInputActionPerformed(evt);
-            }
-        });
+
 
         numberOfResourceInput.setText("Number Of Resources");
-        numberOfResourceInput.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                numberOfResourceInputActionPerformed(evt);
-            }
-        });
+
 
         numberOfTaskInput.setText("Number Of Task");
-        numberOfTaskInput.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                numberOfTaskInputActionPerformed(evt);
-            }
-        });
+
 
         joinBtn.setText("Join Room!");
         joinBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 joinBtnActionPerformed(evt);
+            }
+        });
+
+        startBtn.setText("Start Room!");
+        startBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startBtnActionPerformed(evt);
             }
         });
 
@@ -103,19 +99,26 @@ public class ClientGUI1 extends javax.swing.JFrame {
                                         .addComponent(nameInput)
                                         .addComponent(numberOfResourceInput, javax.swing.GroupLayout.PREFERRED_SIZE, 210, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(18, 18, 18)
-                                .addComponent(joinBtn)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(startPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(startBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(joinBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap(20, Short.MAX_VALUE))
         );
         startPanelLayout.setVerticalGroup(
                 startPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(startPanelLayout.createSequentialGroup()
-                                .addComponent(nameInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(3, 3, 3)
-                                .addGroup(startPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(numberOfResourceInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(joinBtn))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(numberOfTaskInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, startPanelLayout.createSequentialGroup()
+                                .addGroup(startPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(startPanelLayout.createSequentialGroup()
+                                                .addGap(0, 0, Short.MAX_VALUE)
+                                                .addComponent(joinBtn))
+                                        .addGroup(startPanelLayout.createSequentialGroup()
+                                                .addGroup(startPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(nameInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(startBtn))
+                                                .addGap(3, 3, 3)
+                                                .addComponent(numberOfResourceInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
+                                                .addComponent(numberOfTaskInput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addContainerGap())
         );
 
@@ -389,8 +392,9 @@ public class ClientGUI1 extends javax.swing.JFrame {
 
     private void submitBtnActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
-        client.sendToServer("ok,"+YourID+"."+scoreLabel.getText());
         submitBtn.setEnabled(false);
+        client.sendToServer("ok,"+YourID+"."+scoreLabel.getText());
+
     }
 
     private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -449,6 +453,21 @@ public class ClientGUI1 extends javax.swing.JFrame {
 
     private void joinBtnActionPerformed(java.awt.event.ActionEvent evt) {
         // TODO add your handling code here:
+        YourName = nameInput.getText();
+        client = new Client(this, YourName);
+        client.start();
+        client.sendToServer("Hello,"+YourName+"."+1+"|"+1); // vì phần đằng sau ko có tác dụng khi join nên để mặc định 1,1
+        System.out.println("sent Hello -> "+YourName+"."+1+"|"+1);
+        //t?o lu?ng nh?n d? li?u
+        ClientGUI1.ReceivingThread t = new ClientGUI1.ReceivingThread(client.getClientSocket(), this);
+        t.start();
+        //xoá nút start
+        joinBtn.setEnabled(false);
+        startBtn.setEnabled(false);
+    }
+
+    private void startBtnActionPerformed(java.awt.event.ActionEvent evt) {
+        // TODO add your handling code here:
         try{
             numberOfResource = Integer.parseInt(numberOfResourceInput.getText());
             numberOfTask = Integer.parseInt(numberOfTaskInput.getText());
@@ -462,22 +481,12 @@ public class ClientGUI1 extends javax.swing.JFrame {
             t.start();
             //xoá nút start
             joinBtn.setEnabled(false);
+            startBtn.setEnabled(false);
         } catch (Exception e){
 
         }
     }
 
-    private void numberOfTaskInputActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-    }
-
-    private void numberOfResourceInputActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-    }
-
-    private void nameInputActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-    }
 
     /**
      * @param args the command line arguments
@@ -542,6 +551,7 @@ public class ClientGUI1 extends javax.swing.JFrame {
     private javax.swing.JPanel scorePanel;
     private javax.swing.JPanel startPanel;
     private javax.swing.JButton submitBtn;
+    private javax.swing.JButton startBtn;
     // End of variables declaration
     //Custom variables
     Client client;
